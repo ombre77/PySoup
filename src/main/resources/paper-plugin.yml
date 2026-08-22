@@ -1,0 +1,11 @@
+name: PySoup
+description: $description
+prefix: PySoup
+version: '${version}'
+
+main: net.ody.pySoup.PySoup
+loader: net.ody.pySoup.PySoupLoader
+api-version: '1.21.11'
+load: POSTWORLD
+
+authors: [ .ody ]
