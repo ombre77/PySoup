@@ -1,1 +1,8 @@
-rootProject.name = "PySoup"
+rootProject.name = "pysoup"
+
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
