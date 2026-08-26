@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum
+from instances import WorldInstance
 
 class World(Enum):
-    Overworld="world"
-    Nether="world_the_nether"
-    End="world_the_end"
+    Overworld=WorldInstance("world")
+    Nether=WorldInstance("world_the_nether")
+    End=WorldInstance("world_the_end")
 
 @dataclass
 class Position:
