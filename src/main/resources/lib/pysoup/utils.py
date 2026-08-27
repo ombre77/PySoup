@@ -19,3 +19,9 @@ def log(message: str) -> None:
 
 def get_server():
     return _gBridge().getServer()
+
+def broadcast(message:str):
+    _gBridge().broadcast(message)
+
+def component_to_str(component) -> str:
+    return _gBridge().getStringFromComponent(component)

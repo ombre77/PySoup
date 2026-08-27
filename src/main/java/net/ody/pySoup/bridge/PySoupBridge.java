@@ -1,11 +1,16 @@
 package net.ody.pySoup.bridge;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.ody.pySoup.PySoupErrors;
+import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
 import java.util.List;
@@ -18,7 +23,8 @@ public class PySoupBridge {
     private final Plugin plugin;
     private final Listener dispatchListener = new Listener() {};
 
-    private final Map<Class<? extends Event>, List<Value>> handlers = new ConcurrentHashMap<>();
+    private record RegisteredHandler(Value callback, Context context){}
+    private final Map<Class<? extends Event>, List<RegisteredHandler>> handlers = new ConcurrentHashMap<>();
 
     public PySoupBridge(Plugin plugin) {
         this.plugin = plugin;
@@ -38,7 +44,9 @@ public class PySoupBridge {
         }
 
         boolean firstHandlerForThisEvent = !handlers.containsKey(eventClass);
-        handlers.computeIfAbsent(eventClass, c -> new CopyOnWriteArrayList<>()).add(callback);
+        Context context=Context.getCurrent();
+        handlers.computeIfAbsent(eventClass,c->new CopyOnWriteArrayList<>())
+                .add(new RegisteredHandler(callback,context));
 
         if (firstHandlerForThisEvent) {
             EventExecutor executor = (listener, event) -> dispatch(eventClass, event);
@@ -48,16 +56,21 @@ public class PySoupBridge {
     }
 
     private void dispatch(Class<? extends Event> eventClass, Event event) {
-        List<Value> callbacks = handlers.get(eventClass);
+        List<RegisteredHandler> callbacks = handlers.get(eventClass);
         if (callbacks == null) {
             return;
         }
-        for (Value callback : callbacks) {
+        for (RegisteredHandler h: callbacks) {
             try {
-                callback.execute(event);
+                h.callback.execute(event);
+            } catch (org.graalvm.polyglot.PolyglotException e) {
+                PySoupErrors.log(plugin.getLogger(),
+                        "handler:" + eventClass.getSimpleName(), h.context,e);
             } catch (Exception e) {
+                // non-polyglot Java-side failure (shouldn't normally happen here,
+                // but keep a fallback so a bad handler can't kill the dispatch loop)
                 plugin.getLogger().log(Level.SEVERE,
-                        "Error in python handler for " + eventClass.getSimpleName(), e);
+                        "Unexpected error dispatching " + eventClass.getSimpleName(), e);
             }
         }
     }
@@ -69,4 +82,14 @@ public class PySoupBridge {
     public void log(String message) {
         plugin.getLogger().info(message);
     }
+
+    public void broadcast(String message) {
+        Bukkit.broadcast(Component.text(message));
+    }
+
+    public String getStringFromComponent(Component component){
+        TextComponent textComponent=(TextComponent) component;
+        return textComponent.content();
+    }
+
 }

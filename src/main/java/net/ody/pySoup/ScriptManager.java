@@ -4,16 +4,16 @@ import net.ody.pySoup.bridge.PySoupBridge;
 import org.bukkit.plugin.Plugin;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class ScriptManager {
@@ -34,9 +34,39 @@ public class ScriptManager {
         this.libDir = new File(plugin.getDataFolder(), "lib");
     }
 
-    private static final List<String> LIB_RESOURCES = List.of(
-            "lib/pysoup/__init__.py"
-    );
+    /** Copy every resource bundled under lib/ in the plugin jar out to the
+     * data folder, overwriting each time. Walks the jar directly rather than
+     * a hardcoded file list, so newly added lib files are picked up
+     * automatically instead of silently going missing until someone
+     * remembers to list them. */
+    private void extractLib() {
+        File jarFile;
+        try {
+            jarFile = new File(plugin.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (Exception e) {
+            logger.severe("Could not locate plugin jar to extract lib: " + e.getMessage());
+            return;
+        }
+
+        try (java.util.jar.JarFile jar = new java.util.jar.JarFile(jarFile)) {
+            java.util.Enumeration<java.util.jar.JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+                java.util.jar.JarEntry entry = entries.nextElement();
+                String name = entry.getName();
+                if (entry.isDirectory() || !name.startsWith("lib/")) {
+                    continue;
+                }
+
+                File dest = new File(scriptsDir, name.substring("lib/".length()));
+                try (InputStream in = jar.getInputStream(entry)) {
+                    Files.createDirectories(dest.toPath().getParent());
+                    Files.copy(in, dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        } catch (IOException e) {
+            logger.severe("Failed to extract bundled lib: " + e.getMessage());
+        }
+    }
 
     public void loadAll() {
         engine = Engine.newBuilder("python").build();
@@ -57,29 +87,9 @@ public class ScriptManager {
         }
     }
 
-    private void extractLib() {
-        for (String resourcePath : LIB_RESOURCES) {
-            // resourcePath is "lib/pysoup/__init__.py" - strip the leading
-            // "lib/" so it lands at <dataFolder>/lib/pysoup/__init__.py
-            File dest = new File(plugin.getDataFolder(), resourcePath);
-
-            try (InputStream in = plugin.getClass().getClassLoader().getResourceAsStream(resourcePath)) {
-                if (in == null) {
-                    logger.warning("Bundled lib resource missing from jar: " + resourcePath);
-                    continue;
-                }
-                Path destPath = dest.toPath();
-                Files.createDirectories(destPath.getParent());
-                Files.copy(in, destPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            } catch (IOException e) {
-                logger.severe("Failed to extract lib resource " + resourcePath + ": " + e.getMessage());
-            }
-        }
-    }
-
     public void load(File file) {
         String name = file.getName();
-        logger.info("Loading script '"+name+"'");
+        logger.info("Loading script '" + name + "'");
 
         // If this script is already loaded, close the old context first -
         // reload should leave no leftover state from the previous version.
@@ -89,20 +99,22 @@ public class ScriptManager {
             scripts.remove(name);
         }
 
-        try {
-            Context context = Context.newBuilder("python")
-                    .engine(engine)
-                    .allowAllAccess(true)
-                    .option("python.PythonPath", libDir.getAbsolutePath())
-                    .build();
+        Context context = Context.newBuilder("python")
+               .engine(engine)
+                .allowAllAccess(true)
+                .option("python.PythonPath", scriptsDir.getAbsolutePath())
+                .build();
 
-            context.getPolyglotBindings().putMember("bridge", bridge);
+        context.getPolyglotBindings().putMember("bridge", bridge);
+        try {
 
             Source source = Source.newBuilder("python", file).build();
             context.eval(source);
 
             scripts.put(name, new ScriptInstance(name, file, context));
             logger.info("Loaded script: " + name);
+        } catch (PolyglotException e) {
+            PySoupErrors.log(logger,name,context,e);
         } catch (IOException e) {
             logger.severe("Could not read script " + name + ": " + e.getMessage());
         } catch (Exception e) {
@@ -116,6 +128,13 @@ public class ScriptManager {
         if (instance != null) {
             instance.close();
             logger.info("Unloaded script: " + name);
+        }
+    }
+
+    public void unloadAll(){
+        Set<String> names=scripts.keySet();
+        for (String name:names){
+            unload(name);
         }
     }
 
