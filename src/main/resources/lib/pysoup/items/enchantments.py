@@ -1,6 +1,6 @@
 from enum import Enum
-from .......run.plugins.PySoup.scripts.pysoup.bukkit import NamespacedKey,RegistryAccess,RegistryKey
-from .......run.plugins.PySoup.scripts.pysoup.utils import component_to_str
+from ..bukkit import NamespacedKey,RegistryAccess,RegistryKey
+from ..utils import component_to_str
 
 ENCHANTMENT_REGISTRY = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
 

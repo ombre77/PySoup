@@ -1,80 +1,61 @@
 package net.ody.pySoup.bridge;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.ody.pySoup.PySoupErrors;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Level;
-
 public class PySoupBridge {
     private final Plugin plugin;
-    private final Listener dispatchListener = new Listener() {};
-
-    private record RegisteredHandler(Value callback, Context context){}
-    private final Map<Class<? extends Event>, List<RegisteredHandler>> handlers = new ConcurrentHashMap<>();
+    private final PySoupEventDispatcher dispatcher;
+    private final PySoupScheduler scheduler;
 
     public PySoupBridge(Plugin plugin) {
         this.plugin = plugin;
+        this.dispatcher = new PySoupEventDispatcher(plugin);
+        this.scheduler = new PySoupScheduler(plugin);
     }
 
-    @SuppressWarnings("unchecked")
+    // --- events ---
     public void registerEvent(String eventClassName, Value callback) {
-        if (!callback.canExecute()) {
-            throw new IllegalArgumentException("Callback for " + eventClassName + " is not callable");
-        }
-
-        Class<? extends Event> eventClass;
-        try {
-            eventClass = (Class<? extends Event>) Class.forName(eventClassName);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Unknown event class: " + eventClassName, e);
-        }
-
-        boolean firstHandlerForThisEvent = !handlers.containsKey(eventClass);
-        Context context=Context.getCurrent();
-        handlers.computeIfAbsent(eventClass,c->new CopyOnWriteArrayList<>())
-                .add(new RegisteredHandler(callback,context));
-
-        if (firstHandlerForThisEvent) {
-            EventExecutor executor = (listener, event) -> dispatch(eventClass, event);
-            plugin.getServer().getPluginManager()
-                    .registerEvent(eventClass, dispatchListener, EventPriority.NORMAL, executor, plugin);
-        }
+        dispatcher.registerEvent(eventClassName, callback);
     }
 
-    private void dispatch(Class<? extends Event> eventClass, Event event) {
-        List<RegisteredHandler> callbacks = handlers.get(eventClass);
-        if (callbacks == null) {
-            return;
-        }
-        for (RegisteredHandler h: callbacks) {
-            try {
-                h.callback.execute(event);
-            } catch (org.graalvm.polyglot.PolyglotException e) {
-                PySoupErrors.log(plugin.getLogger(),
-                        "handler:" + eventClass.getSimpleName(), h.context,e);
-            } catch (Exception e) {
-                // non-polyglot Java-side failure (shouldn't normally happen here,
-                // but keep a fallback so a bad handler can't kill the dispatch loop)
-                plugin.getLogger().log(Level.SEVERE,
-                        "Unexpected error dispatching " + eventClass.getSimpleName(), e);
-            }
-        }
+    // --- scheduler ---
+    public int runTask(Value callback) {
+        return scheduler.runTask(callback);
     }
 
+    public int runTaskLater(Value callback, long delayTicks) {
+        return scheduler.runTaskLater(callback, delayTicks);
+    }
+
+    public int runTaskTimer(Value callback, long delayTicks, long periodTicks) {
+        return scheduler.runTaskTimer(callback, delayTicks, periodTicks);
+    }
+
+    public int runTaskAsync(Value callback) {
+        return scheduler.runTaskAsync(callback);
+    }
+
+    public int runTaskTimerAsync(Value callback, long delayTicks, long periodTicks) {
+        return scheduler.runTaskTimerAsync(callback, delayTicks, periodTicks);
+    }
+
+    public void cancelTask(int taskId) {
+        scheduler.cancelTask(taskId);
+    }
+
+    // --- lifecycle cleanup, called from ScriptManager on unload/reload ---
+    public void unregisterContext(Context context) {
+        dispatcher.unregisterContext(context);
+        scheduler.unregisterContext(context);
+    }
+
+    // --- method for python lib ---
     public Server getServer() {
         return plugin.getServer();
     }
@@ -87,9 +68,7 @@ public class PySoupBridge {
         Bukkit.broadcast(Component.text(message));
     }
 
-    public String getStringFromComponent(Component component){
-        TextComponent textComponent=(TextComponent) component;
-        return textComponent.content();
+    public String getStringFromComponent(Component component) {
+        return PlainTextComponentSerializer.plainText().serialize(component);
     }
-
 }

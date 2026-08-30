@@ -61,4 +61,16 @@ public class PySoupErrors {
             return e.getMessage() + " (failed to format traceback: " + fmtErr + ")";
         }
     }
+
+    public static String summarize(PolyglotException e) {
+        if (e.isHostException()) {
+            Throwable host = e.asHostException();
+            return host.getClass().getSimpleName() + ": " + host.getMessage();
+        }
+        if (e.isGuestException()) {
+            String msg = e.getMessage();
+            return msg != null ? msg : "Python error";
+        }
+        return e.getMessage();
+    }
 }

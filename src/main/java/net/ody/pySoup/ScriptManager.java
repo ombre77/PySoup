@@ -11,9 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class ScriptManager {
@@ -25,6 +23,8 @@ public class ScriptManager {
 
     private Engine engine;
     private final Map<String, ScriptInstance> scripts = new HashMap<>();
+
+    public record LoadResult(String name, boolean success, String error) {}
 
     public ScriptManager(Plugin plugin, PySoupBridge bridge) {
         this.plugin = plugin;
@@ -68,57 +68,65 @@ public class ScriptManager {
         }
     }
 
-    public void loadAll() {
+    public List<LoadResult> loadAll() {
         engine = Engine.newBuilder("python").build();
         extractLib();
 
+        List<LoadResult> results = new ArrayList<>();
+
         if (!scriptsDir.exists() && !scriptsDir.mkdirs()) {
             logger.severe("Could not create scripts directory: " + scriptsDir.getAbsolutePath());
-            return;
+            return results;
         }
 
         File[] files = scriptsDir.listFiles((dir, name) -> name.endsWith(".py"));
         if (files == null) {
-            return;
+            return results;
         }
 
         for (File file : files) {
-            load(file);
+            results.add(load(file));
         }
+        return results;
     }
 
-    public void load(File file) {
+    public LoadResult load(File file) {
         String name = file.getName();
         logger.info("Loading script '" + name + "'");
 
-        // If this script is already loaded, close the old context first -
-        // reload should leave no leftover state from the previous version.
         ScriptInstance existing = scripts.get(name);
         if (existing != null) {
+            bridge.unregisterContext(existing.getContext());
             existing.close();
             scripts.remove(name);
         }
 
         Context context = Context.newBuilder("python")
-               .engine(engine)
+                .engine(engine)
                 .allowAllAccess(true)
                 .option("python.PythonPath", scriptsDir.getAbsolutePath())
                 .build();
 
         context.getPolyglotBindings().putMember("bridge", bridge);
         try {
-
             Source source = Source.newBuilder("python", file).build();
             context.eval(source);
 
             scripts.put(name, new ScriptInstance(name, file, context));
             logger.info("Loaded script: " + name);
+            return new LoadResult(name, true, null);
         } catch (PolyglotException e) {
-            PySoupErrors.log(logger,name,context,e);
+            PySoupErrors.log(logger, name, context, e);
+            context.close();
+            return new LoadResult(name, false, PySoupErrors.summarize(e));
         } catch (IOException e) {
             logger.severe("Could not read script " + name + ": " + e.getMessage());
+            context.close();
+            return new LoadResult(name, false, e.getMessage());
         } catch (Exception e) {
             logger.severe("Failed to load script " + name + ": " + e.getMessage());
+            context.close();
+            return new LoadResult(name, false, e.getMessage());
         }
     }
 
@@ -126,6 +134,7 @@ public class ScriptManager {
     public void unload(String name) {
         ScriptInstance instance = scripts.remove(name);
         if (instance != null) {
+            bridge.unregisterContext(instance.getContext());
             instance.close();
             logger.info("Unloaded script: " + name);
         }
