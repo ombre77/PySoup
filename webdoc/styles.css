@@ -1,0 +1,536 @@
+/* ==========================================================================
+   PySoup Docs — shared theme
+   Accent gradient: gay men's pride flag (green → mint → white → blue → violet)
+   ========================================================================== */
+
+:root {
+  --bg: #0a100e;
+  --surface: #101815;
+  --surface-2: #17211d;
+  --border: #223028;
+  --border-soft: #1a2420;
+
+  --text: #edf3ef;
+  --text-muted: #8fa69b;
+  --text-faint: #5c7166;
+
+  --flag-1: #078d70;
+  --flag-2: #98e8c1;
+  --flag-3: #ffffff;
+  --flag-4: #7bade2;
+  --flag-5: #4a2a8c;
+
+  --gradient: linear-gradient(
+    90deg,
+    var(--flag-1) 0%,
+    var(--flag-2) 25%,
+    var(--flag-3) 50%,
+    var(--flag-4) 75%,
+    var(--flag-5) 100%
+  );
+
+  --radius: 10px;
+  --radius-sm: 6px;
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --sidebar-width: 268px;
+  --content-max: 720px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- layout shell ---------- */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-soft);
+  background: var(--surface);
+  padding: 28px 20px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+  text-decoration: none;
+}
+
+.brand-mark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 19px;
+  color: var(--text);
+}
+
+.brand-tag {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  margin: 0 0 28px;
+  font-family: var(--font-mono);
+}
+
+.nav-group {
+  margin-bottom: 22px;
+}
+
+.nav-group-label {
+  font-size: 12.5px;
+  color: var(--text-faint);
+  margin: 0 0 8px 10px;
+  font-weight: 500;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14.5px;
+  position: relative;
+}
+
+.nav-link:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.nav-link.active {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.nav-link.active::before {
+  content: "";
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--gradient);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 56px 48px 120px;
+  display: flex;
+  justify-content: center;
+}
+
+.content-inner {
+  width: 100%;
+  max-width: var(--content-max);
+}
+
+/* ---------- typography ---------- */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+h1 {
+  font-size: 36px;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+.page-title-rule {
+  width: 64px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gradient);
+  margin: 0 0 24px;
+}
+
+h2 {
+  font-size: 22px;
+  margin: 48px 0 14px;
+  padding-top: 4px;
+}
+
+h3 {
+  font-size: 17px;
+  margin: 32px 0 10px;
+}
+
+p {
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+p code, li code {
+  font-family: var(--font-mono);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 0.88em;
+  color: var(--text);
+}
+
+a {
+  color: var(--flag-4);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+a:hover {
+  border-bottom-color: currentColor;
+}
+
+ul, ol {
+  color: var(--text-muted);
+  padding-left: 22px;
+  margin: 0 0 16px;
+}
+
+li {
+  margin-bottom: 6px;
+}
+
+.lede {
+  font-size: 18px;
+  color: var(--text-muted);
+  max-width: 56ch;
+}
+
+/* ---------- code blocks ---------- */
+
+pre {
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  overflow-x: auto;
+  margin: 0 0 20px;
+}
+
+pre code.hljs {
+  background: transparent;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.code-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 0 0 6px;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+pre:hover .copy-btn,
+.copy-btn:focus-visible {
+  opacity: 1;
+}
+
+.copy-btn:hover {
+  color: var(--text);
+  border-color: var(--flag-4);
+}
+
+.copy-btn.copied {
+  color: var(--flag-2);
+  border-color: var(--flag-1);
+}
+
+/* ---------- page footer (prev/next) ---------- */
+
+.page-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 56px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-soft);
+}
+
+.page-footer-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 160px;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.page-footer-link:hover {
+  border-color: var(--flag-4);
+}
+
+.page-footer-link.next {
+  text-align: right;
+  margin-left: auto;
+}
+
+.page-footer-dir {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.page-footer-title {
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+/* ---------- callouts ---------- */
+
+.callout {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--flag-4);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin: 0 0 20px;
+  color: var(--text-muted);
+  font-size: 14.5px;
+}
+
+.callout strong {
+  color: var(--text);
+}
+
+.callout.warn {
+  border-left-color: var(--flag-5);
+}
+
+/* ---------- tree ---------- */
+
+.tree {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 10px 8px;
+  margin: 0 0 20px;
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+}
+
+.tree-node {
+  margin: 0;
+}
+
+.tree-node > .tree-children {
+  margin: 0 0 0 18px;
+  padding-left: 12px;
+  border-left: 1px solid var(--border-soft);
+}
+
+.tree-leaf {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  color: var(--text-muted);
+}
+
+.tree-leaf::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  flex-shrink: 0;
+}
+
+/* remove default <details> marker, draw our own chevron */
+.tree summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border-radius: 5px;
+  color: var(--text);
+  user-select: none;
+}
+
+.tree summary::-webkit-details-marker {
+  display: none;
+}
+
+.tree summary::before {
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 5px solid var(--text-faint);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.tree details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.tree summary:hover,
+.tree-leaf:hover {
+  background: var(--surface-2);
+  color: var(--flag-4);
+}
+
+.tree-note {
+  color: var(--text-faint);
+  font-size: 12px;
+  margin-left: auto;
+  padding-left: 12px;
+}
+
+/* ---------- misc components ---------- */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 20px 0 28px;
+}
+
+.card {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  background: var(--surface);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--flag-4);
+  transform: translateY(-1px);
+}
+
+.card:hover h3 {
+  color: var(--flag-4);
+}
+
+.card h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  transition: color 0.15s ease;
+}
+
+.card p {
+  margin: 0;
+  font-size: 13.5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 22px;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text-muted);
+}
+
+th {
+  color: var(--text-faint);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+td:first-child, th:first-child {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 860px) {
+  .shell {
+    flex-direction: column;
+  }
+  .sidebar {
+    position: static;
+    height: auto;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .content {
+    padding: 36px 20px 80px;
+  }
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--flag-4);
+  outline-offset: 2px;
+}

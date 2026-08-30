@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PySoup Docs — Overview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/eighties.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="index">
+
+<div class="shell">
+  <nav class="sidebar" id="sidebar-root"></nav>
+
+  <main class="content">
+    <div class="content-inner">
+
+      <h1>PySoup</h1>
+      <div class="page-title-rule"></div>
+      <p class="lede">Write small python script that execute inside your Minecraft server! PySoup provide a large and complete python
+        lib to work with.
+      </p>
+
+      <h2>Why is PySoup?</h2>
+      <p>
+        PySoup is <b>heavily</b> inspired from PyFish, a mod that does the same thing as PySoup but for modded instead of Paper.
+        I recommend to check out <a href="https://modrinth.com/mod/pyfish-python">the mod.</a> too!
+      </p>
+      <p>My goal with PySoup was mainly to create the <b>best</b> python lib for it as possible. This is why you will normally
+      never be forced to use direct java method inside of your scripts - everything is handle by the lib.</p>
+
+      <h2>How is PySoup?</h2>
+      <p>PySoup (like PyFish) is mainly using GraalPy to run the scripts: that means that <strong>you dont even need to install python</strong> to
+      be able to run the scripts. Wonderfull, right?</p>
+
+      <h2>Brief installation guide</h2>
+      <p>First, download the plugin (on modrinth or on a github release), place it in your <code>plugins/</code> folder inside of your server.</p>
+      <div class="callout warn"><strong>The current supported version is Paper 1.21.11</strong></div>
+      <div class="callout">If you do not have a server that runs <b>Paper</b>, check out <a href="https://docs.papermc.io/paper/getting-started/">this doc</a> to easily
+      create one.
+      </div>
+      <p>Then, launch your server so the plugin can create all the folder it needs.</p>
+      <p>It should look like this:</p>
+      <div id="folder-tree"></div>
+
+      <div id="page-footer-root"></div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<script src="nav-data.js"></script>
+<script src="nav.js"></script>
+<script src="docs.js"></script>
+<script src="tree.js"></script>
+<script>
+  hljs.highlightAll();
+  docsInit();
+  renderTree("folder-tree",[
+    {label:"plugins/",open:true,children:[
+      {label:"PySoup.jar"},
+      {label:"PySoup/",open:true,children:[
+        {label:"lib/",open:false,note:"pysoup lib files"}
+      ]}
+    ]}
+  ]);
+</script>
+</body>
+</html>
