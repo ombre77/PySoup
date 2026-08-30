@@ -3,10 +3,12 @@ from . import events as _events
 from . import utils as _utils
 from .events import Event, on_event,EventInfos
 from .utils import log, get_server,broadcast
-from .values import Position,BlockPosition,World,Direction,Location
-from .instances import WorldInstance, EntityInstance
-from .materials import BlockMaterial,EntityMaterial
+from .values import Position,BlockPosition,World,Direction
+from .instances.instances import WorldInstance, EntityInstance
+from .items.materials import BlockMaterial,EntityMaterial,ItemMaterial
 from .component import TextComponent
+from .items.max_stack import get_max_stack_size,stackable_to
+from .items.item_stack import ItemStack
 
 _bridge = polyglot.import_value("bridge")
 _events._setBridge(_bridge)

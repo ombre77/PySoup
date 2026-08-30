@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
-from buckit import Material
+from ..bukkit import Material
 
 @dataclass
 class EntityMaterial:
@@ -2851,7 +2851,7 @@ class ItemMaterial(Enum):
 
     @classmethod
     def from_bukkit(cls,bukkit_material):
-        return ItemMaterial(bukkit_material.name())
+        return ItemMaterial(str(bukkit_material.name()).lower())
 
     def to_bukkit(self):
-        return Material.valueOf(self.value)
+        return Material.valueOf(self.value.upper())

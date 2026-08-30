@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Optional
-from .geometry import BlockPosition, Position, Direction
-from .utils import get_server
-from .materials import BlockMaterial,EntityMaterial
-
+from ..maths.geometry import BlockPosition, Position, Direction
+from ..utils import get_server
+from ..items.materials import BlockMaterial,EntityMaterial
+from ..inventory.player_inventory import PlayerInventory
 
 import java
 
@@ -96,11 +96,23 @@ class EntityInstance:
 @dataclass(frozen=True)
 class PlayerInstance(EntityInstance):
 
+    inventory:PlayerInventory
+
+    def get_inventory(self)->PlayerInventory:
+        return self.inventory
+
+    def push_inventory(self):
+        self._live().setInventory(self.inventory.to_bukkit())
+
     def get_name(self) -> str:
         return self._live().getName()
 
     def send_message(self, message: str) -> None:
         self._live().sendMessage(message)
+
+    @classmethod
+    def from_bukkit(cls, entity):
+        return cls(str(entity.getUniqueId()),PlayerInventory.from_bukkit(entity.getInventory()))
 
 @dataclass(frozen=True)
 class BlockInstance:

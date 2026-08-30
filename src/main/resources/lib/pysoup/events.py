@@ -2,7 +2,7 @@ import polyglot
 from enum import Enum
 from typing import Any, Optional,Callable
 from dataclasses import dataclass
-from .instances import PlayerInstance,BlockInstance
+from .instances.instances import PlayerInstance,BlockInstance
 from .utils import component_to_str
 
 _bridge: Optional[Any] = None
@@ -70,6 +70,12 @@ class EventInfos:
         player:PlayerInstance
         block:BlockInstance
 
+    @dataclass
+    class PlayerInteract:
+        player:PlayerInstance
+        block:Optional[BlockInstance]
+
+
 
 _EVENT_EXTRACTORS: dict[Event, Callable[[Any], Any]] = {
     Event.PlayerJoin: lambda e: EventInfos.PlayerJoin(
@@ -89,5 +95,9 @@ _EVENT_EXTRACTORS: dict[Event, Callable[[Any], Any]] = {
     Event.BlockPlace: lambda e: EventInfos.BlockPlace(
         player=PlayerInstance.from_bukkit(e.getPlayer()),
         block=BlockInstance.from_bukkit(e.getBlock())
+    ),
+    Event.PlayerInteract: lambda e: EventInfos.PlayerInteract(
+        player=PlayerInstance.from_bukkit(e.getPlayer()),
+        block=BlockInstance.from_bukkit(e.getClickedBlock()) if e.getClickedBlock() is not None else None
     )
 }
