@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Overview — PySoup Docs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="index">
+  <div class="shell">
+    <aside class="sidebar" aria-label="Documentation navigation">
+      <div id="sidebar-root"></div>
+    </aside>
+    <main class="content">
+      <article class="content-inner">
+        <h1>PySoup</h1><div class="page-title-rule"></div><p class="lede">Python scripting for Paper servers, with a small Python-facing API over Bukkit/Paper functionality.</p>
+
+<h2>What PySoup provides</h2>
+<p>PySoup runs Python scripts inside a Minecraft server through GraalPy and exposes a curated API for events, scheduling, entities, worlds, blocks, inventories, items, enchantments, and basic geometry.</p>
+
+<div class="card-grid">
+  <a class="card" href="first_script.html"><h3>First Script</h3><p>Install the script, register an event, and reload it in-game.</p></a>
+  <a class="card" href="events.html"><h3>Events</h3><p>Register supported Paper/Bukkit events and use their typed event information.</p></a>
+  <a class="card" href="items.html"><h3>Items & Inventory</h3><p>Use ItemStack, ItemMeta, Inventory, PlayerInventory, stack limits, and groups.</p></a>
+  <a class="card" href="scheduler.html"><h3>Scheduler</h3><p>Run immediate, delayed, repeating, and asynchronous tasks.</p></a>
+</div>
+
+<h2>Requirements</h2>
+<p>The source package targets Paper <strong>1.21.11</strong> and Java 21. Paper's current documentation confirms Java 21 for the 1.20–1.21.11 line; newer Paper releases have different requirements. See the <a href="https://docs.papermc.io/paper/getting-started/">Paper getting-started guide</a> before choosing a server version.</p>
+<p>PySoup uses GraalPy rather than requiring a separate CPython installation. GraalPy is a Python 3 runtime designed to run Python code on the JVM; see the <a href="https://www.graalvm.org/reference-manual/graalpy/">GraalPy reference</a> for runtime details.</p>
+
+<h2>Architecture at a glance</h2>
+<div id="architecture-tree" aria-label="PySoup architecture file tree"></div>
+
+<h2>Public imports</h2>
+<p>Most scripts can simply use <code>from pysoup import *</code>. The package currently re-exports the main event, world, entity, item, inventory, geometry, and scheduler APIs.</p>
+<pre><code class="language-python">from pysoup import (
+    Event, EventInfos, on_event,
+    Position, BlockPosition, Direction, World,
+    WorldInstance, EntityInstance,
+    BlockMaterial, EntityMaterial, ItemMaterial,
+    ItemStack, ItemMeta, Enchantment,
+    get_max_stack_size, stackable_to,
+    task, async_task, run_later, repeating, Task,
+    log, broadcast, get_server,
+)</code></pre>
+
+<h2>Reference pages</h2>
+<p>Use <a href="events.html">Events</a> for event payloads, <a href="items.html">Items & Inventory</a> for the item/inventory API, and <a href="scheduler.html">Scheduler</a> for task execution. <a href="errors.html">Reading errors</a> covers failure modes and debugging, while <a href="limitations.html">Known limitations</a> records important implementation boundaries.</p>
+<h2>
+Important!
+</h2>
+<div class="callout warn">In this doc, i will mostly use
+<pre><code>from pysoup import *
+</code></pre>
+but in your script, <strong>always</strong> use
+<pre><code>from <strong>lib.pysoup</strong> import *</code></pre></div>
+
+        <nav class="page-footer" aria-label="Page navigation"><span></span><a class="page-footer-link next" href="first_script.html"><span class="page-footer-dir">Next →</span><span class="page-footer-title">First Script</span></a></nav>
+      </article>
+    </main>
+  </div>
+  <script src="nav-data.js"></script>
+  <script src="nav.js"></script>
+  <script src="tree.js"></script>
+  <script src="docs.js"></script>
+  <script>
+  renderTree("architecture-tree", [
+    {
+      label: "scripts/",
+      open: true,
+      children: [
+        { label: "your_script.py" },
+        { label: "additional_script.py" }
+      ]
+    },
+    {
+      label: "lib.pysoup/",
+      open: true,
+      children: [
+        { label: "events — event registration and typed event data" },
+        { label: "schedule — task decorators and Task" },
+        { label: "instances — players, entities, worlds, blocks" },
+        { label: "inventory — inventory wrappers and slot filters" },
+        { label: "items — materials, stacks, metadata, enchantments" },
+        { label: "maths.geometry — Vector3, Position, BlockPosition, Direction" }
+      ]
+    }
+  ]);
+  </script>
+</body>
+</html>

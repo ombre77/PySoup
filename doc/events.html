@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Events — PySoup Docs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="events">
+  <div class="shell">
+    <aside class="sidebar" aria-label="Documentation navigation">
+      <div id="sidebar-root"></div>
+    </aside>
+    <main class="content">
+      <article class="content-inner">
+        <h1>Events</h1><div class="page-title-rule"></div><p class="lede">Register the Paper/Bukkit events currently wrapped by PySoup and work with typed event information.</p>
+<h2>Registering an event</h2>
+<pre><code class="language-python">from pysoup import *
+
+@on_event(Event.PlayerJoin)
+def on_join(event: EventInfos.PlayerJoin):
+    event.player.send_message("Welcome!")</code></pre>
+<p>The decorator registers the function immediately when the script is evaluated. For wrapped events, the callback receives an <code>EventInfos</code> object. The current library wraps seven events.</p>
+
+<h2>Supported events</h2>
+<table>
+<thead><tr><th>Event</th><th>Payload</th><th>Cancellable?</th></tr></thead>
+<tbody>
+<tr><td>Event.PlayerJoin</td><td>EventInfos.PlayerJoin</td><td>No</td></tr>
+<tr><td>Event.PlayerQuit</td><td>EventInfos.PlayerQuit</td><td>No</td></tr>
+<tr><td>Event.PlayerChat</td><td>EventInfos.PlayerChat</td><td>Yes</td></tr>
+<tr><td>Event.BlockBreak</td><td>EventInfos.BlockBreak</td><td>Yes</td></tr>
+<tr><td>Event.BlockPlace</td><td>EventInfos.BlockPlace</td><td>Yes</td></tr>
+<tr><td>Event.PlayerInteract</td><td>EventInfos.PlayerInteract</td><td>Yes</td></tr>
+<tr><td>Event.EntityDamage</td><td>EventInfos.EntityDamage</td><td>Yes</td></tr>
+</tbody>
+</table>
+
+<h2>Player events</h2>
+<pre><code class="language-python">@on_event(Event.PlayerJoin)
+def on_join(event: EventInfos.PlayerJoin):
+    print(event.player.get_name())
+
+@on_event(Event.PlayerQuit)
+def on_quit(event: EventInfos.PlayerQuit):
+    broadcast(f"{event.player.get_name()} left the server")</code></pre>
+
+<h2>Chat</h2>
+<p><code>PlayerChat</code> wraps Paper's <code>AsyncChatEvent</code>. Its fields are <code>player</code> and <code>message</code>. The message is converted to a string by PySoup's component conversion helper.</p>
+<pre><code class="language-python">@on_event(Event.PlayerChat)
+def on_chat(event: EventInfos.PlayerChat):
+    if "example" in event.message.lower():
+        event.cancel()
+        event.player.send_message("That message was blocked.")</code></pre>
+<div class="callout warn"><strong>Threading:</strong> Chat is an asynchronous Paper event. Keep the handler short and be careful with APIs that require execution on the server's main thread. See <a href="scheduler.html">Scheduler</a> for asynchronous work.</div>
+
+<h2>Block break and placement</h2>
+<pre><code class="language-python">@on_event(Event.BlockBreak)
+def on_break(event: EventInfos.BlockBreak):
+    event.player.send_message(
+        f"You broke {event.block.block.name}"
+    )
+
+@on_event(Event.BlockPlace)
+def on_place(event: EventInfos.BlockPlace):
+    if event.block.block == BlockMaterial.DIAMOND_BLOCK:
+        event.cancel()</code></pre>
+<p>Both payloads expose <code>player</code> and <code>block</code>. The block wrapper contains its material, integer block position, and world.</p>
+
+<h2>Player interaction</h2>
+<p><code>PlayerInteract</code> contains <code>player</code>, an optional <code>block</code>, <code>action</code>, and an optional <code>hand</code>.</p>
+<table>
+<thead><tr><th>Enum</th><th>Values</th></tr></thead>
+<tbody>
+<tr><td>InteractAction</td><td>LEFT_CLICK_AIR, LEFT_CLICK_BLOCK, RIGHT_CLICK_AIR, RIGHT_CLICK_BLOCK, PHYSICAL</td></tr>
+<tr><td>InteractHand</td><td>MAIN_HAND, OFF_HAND; <code>None</code> when no hand applies</td></tr>
+</tbody>
+</table>
+<pre><code class="language-python">@on_event(Event.PlayerInteract)
+def on_interact(event: EventInfos.PlayerInteract):
+    if event.is_right_click() and event.is_block_interact():
+        event.player.send_message(
+            f"Right-clicked {event.block.block.name}"
+        )</code></pre>
+<p>The convenience predicates are <code>is_left_click()</code>, <code>is_right_click()</code>, <code>is_block_interact()</code>, <code>is_air_interact()</code>, and <code>is_physical()</code>.</p>
+
+<h2>Entity damage</h2>
+<p><code>EntityDamage</code> exposes <code>entity</code>, <code>damage</code>, and <code>cause</code>. The cause is provided as the Bukkit damage-cause name.</p>
+<pre><code class="language-python">@on_event(Event.EntityDamage)
+def on_damage(event: EventInfos.EntityDamage):
+    if event.cause == "FALL":
+        event.cancel()</code></pre>
+<p class="callout">Eventually, <code>cause</code> will be changed to an enum</p>
+
+<h2>Cancellation API</h2>
+<p>For cancellable event payloads, use <code>cancel()</code>, <code>is_cancelled()</code>, or <code>set_cancelled(value)</code>.</p>
+
+        <nav class="page-footer" aria-label="Page navigation"><a class="page-footer-link" href="first_script.html"><span class="page-footer-dir">← Previous</span><span class="page-footer-title">First Script</span></a><a class="page-footer-link next" href="items.html"><span class="page-footer-dir">Next →</span><span class="page-footer-title">Items & Inventory</span></a></nav>
+      </article>
+    </main>
+  </div>
+  <script src="nav-data.js"></script>
+  <script src="nav.js"></script>
+  <script src="tree.js"></script>
+  <script src="docs.js"></script>
+</body>
+</html>

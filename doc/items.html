@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Items & Inventory — PySoup Docs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="items">
+  <div class="shell">
+    <aside class="sidebar" aria-label="Documentation navigation">
+      <div id="sidebar-root"></div>
+    </aside>
+    <main class="content">
+      <article class="content-inner">
+        <h1>Items & Inventory</h1><div class="page-title-rule"></div><p class="lede">The current item API is intentionally small: ItemStack carries material, amount, and ItemMeta; inventory wrappers manage slots and synchronization.</p>
+<p class="callout"><code>ItemMeta</code>, <code>ItemStack</code> and <code>Inventory</code> will contain more fields in future updates</p>
+
+<h2>ItemStack</h2>
+<p>The current class is a dataclass with three fields:</p>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>material</td><td>ItemMaterial</td><td>required</td></tr>
+<tr><td>amount</td><td>int</td><td>1</td></tr>
+<tr><td>meta</td><td>ItemMeta</td><td>empty metadata</td></tr>
+</tbody>
+</table>
+<pre><code class="language-python">from pysoup import *
+
+diamond = ItemStack(ItemMaterial.DIAMOND)
+stack = ItemStack(ItemMaterial.COOKED_BEEF, 16)
+
+print(stack.material)
+print(stack.amount)
+print(stack.meta)</code></pre>
+
+<p><code>ItemStack.to_bukkit()</code> converts the wrapper into a Bukkit <code>ItemStack</code>. <code>ItemStack.from_bukkit(value)</code> converts a Bukkit stack back and returns <code>None</code> when the input is <code>None</code>.</p>
+
+<h2>Item metadata and enchantments</h2>
+<p><code>ItemMeta</code> currently stores enchantments as <code>dict[Enchantment, int]</code>. Its public conversion methods are <code>apply_to_bukkit()</code> and <code>from_bukkit()</code>.</p>
+<pre><code class="language-python">meta = ItemMeta({
+    Enchantment.SHARPNESS: 5,
+    Enchantment.UNBREAKING: 3,
+})
+sword = ItemStack(ItemMaterial.DIAMOND_SWORD, 1, meta)</code></pre>
+<p>When converting to Bukkit, PySoup applies each stored enchantment with Bukkit's <code>addEnchant(..., level, True)</code> behavior.</p>
+
+<h2>Enchantment reference</h2>
+<p>The current <code>Enchantment</code> enum includes the enchantments defined by the library, including <code>PROTECTION</code>, <code>SHARPNESS</code>, <code>EFFICIENCY</code>, <code>MENDING</code>, <code>DENSITY</code>, <code>BREACH</code>, <code>WIND_BURST</code>, and <code>LUNGE</code>.</p>
+<p>Use <code>to_bukkit()</code> when you need the underlying Bukkit object. The wrapper also exposes metadata and compatibility helpers:</p>
+<pre><code class="language-python">e = Enchantment.SHARPNESS
+
+print(e.get_max_level())
+print(e.get_start_level())
+print(e.is_treasure())
+print(e.is_cursed())
+print(e.is_tradeable())
+print(e.is_discoverable())
+print(e.get_anvil_cost())
+print(e.get_weight())
+print(e.description())
+print(e.display_name(5))
+
+if e.conflicts_with(Enchantment.SMITE):
+    print("These enchantments conflict")</code></pre>
+<p>Additional methods are <code>get_min_modified_cost(level)</code>, <code>get_max_modified_cost(level)</code>, <code>can_enchant_item(item)</code>, <code>get_active_slot_groups()</code>, and <code>get_exclusive_with()</code>.</p>
+
+<h2>Stack limits</h2>
+<p>Use the library functions rather than assuming every item stacks to 64.</p>
+<pre><code class="language-python">limit = get_max_stack_size(ItemMaterial.ENDER_PEARL)
+print(limit)  # 16
+
+print(stackable_to(ItemMaterial.DIAMOND, 64))  # True
+print(stackable_to(ItemMaterial.DIAMOND, 65))  # False</code></pre>
+<p>The library currently defines three stack-size categories: 1, 16, and 64. The 16-stack group includes snowballs, eggs, ender pearls, buckets, signs, hanging signs, and honey bottles. A broad set of tools, armor, filled buckets, potions, books, boats, minecarts, shulker boxes, mob armor, and other unstackable items are limited to one.</p>
+
+<h2>Inventory</h2>
+<p><code>Inventory(size, slot_filters=None, bukkit_inventory=None)</code> can represent a detached inventory or wrap a live Bukkit inventory.</p>
+<table>
+<thead><tr><th>Method</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>get_slot(index)</td><td>Return the stack or <code>None</code>.</td></tr>
+<tr><td>set_slot(index, item)</td><td>Replace a slot and push the change to Bukkit when attached.</td></tr>
+<tr><td>can_place(index, item)</td><td>Check the configured slot filter.</td></tr>
+<tr><td>add_item(item)</td><td>Add as much as possible; return the remaining stack or <code>None</code>.</td></tr>
+<tr><td>remove_item(index, amount)</td><td>Remove up to the requested amount and return what was removed.</td></tr>
+<tr><td>find_first(material, meta=None)</td><td>Return the first matching slot index or <code>None</code>.</td></tr>
+<tr><td>is_full()</td><td>Return whether every slot is filled to its material's maximum stack size.</td></tr>
+<tr><td>refresh()</td><td>Re-read the attached Bukkit inventory.</td></tr>
+<tr><td>to_bukkit(...)</td><td>Populate or create a Bukkit inventory.</td></tr>
+</tbody>
+</table>
+
+<h3>Adding and removing</h3>
+<pre><code class="language-python">inv = Inventory(9)
+
+leftover = inv.add_item(ItemStack(ItemMaterial.DIAMOND, 70))
+if leftover is not None:
+    print("Could not fit:", leftover.amount)
+
+removed = inv.remove_item(0, 4)
+if removed is not None:
+    print("Removed:", removed.amount)</code></pre>
+
+<h2>PlayerInventory</h2>
+<p><code>PlayerInventory</code> is a 41-slot inventory wrapper. Its helpers cover the held item, hotbar, armor, and offhand.</p>
+<pre><code class="language-python">inventory = event.player.get_inventory()
+
+held = inventory.get_held_item()
+inventory.set_offhand(ItemStack(ItemMaterial.TORCH, 1))
+
+helmet = inventory.get_helmet()
+boots = inventory.get_boots()
+
+hotbar = inventory.get_hotbar()
+armor = inventory.get_armor_contents()</code></pre>
+<p>The wrapper uses the Bukkit layout: slots 0–8 are the hotbar, 9–35 main storage, 36–39 armor, and 40 offhand. Armor helpers map 36 to boots, 37 to leggings, 38 to chestplate, and 39 to helmet.</p>
+<p>After modifying a player inventory wrapper, call <code>player.push_inventory()</code> to replace the live player's Bukkit inventory with the wrapper's current contents.</p>
+<p class="callout">It is not necessary, but i recommand it in case of bugs and glitchs.</p>
+
+<h2>Slot filters</h2>
+<p>Inventory constructors accept a mapping such as <code>{0: "fuel"}</code>. The library currently registers the built-in filters <code>"blank"</code> and <code>"fuel"</code>. Custom filter registration is available through the lower-level <code>pysoup.inventory.slot_filter</code> module.</p>
+
+<div class="callout warn"><strong>Current API boundary.</strong> The source does not currently implement convenience methods such as <code>ItemStack.add_enchantment()</code>, <code>set_name()</code>, <code>add_lore_line()</code>, or <code>has_item_meta()</code>. Examples using those methods were removed from this documentation.
+Blame AI</div>
+
+        <nav class="page-footer" aria-label="Page navigation"><a class="page-footer-link" href="events.html"><span class="page-footer-dir">← Previous</span><span class="page-footer-title">Events</span></a><a class="page-footer-link next" href="scheduler.html"><span class="page-footer-dir">Next →</span><span class="page-footer-title">Scheduler</span></a></nav>
+      </article>
+    </main>
+  </div>
+  <script src="nav-data.js"></script>
+  <script src="nav.js"></script>
+  <script src="tree.js"></script>
+  <script src="docs.js"></script>
+</body>
+</html>

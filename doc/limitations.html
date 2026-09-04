@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Known Limitations — PySoup Docs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="limitations">
+  <div class="shell">
+    <aside class="sidebar" aria-label="Documentation navigation">
+      <div id="sidebar-root"></div>
+    </aside>
+    <main class="content">
+      <article class="content-inner">
+        <h1>Known limitations</h1><div class="page-title-rule"></div><p class="lede">These are implementation boundaries visible in the current PySoup source package, rather than promises about future versions.</p>
+<h2>Supported server line</h2>
+<p>The supplied library is written around Bukkit/Paper APIs and its material/enchantment tables are aligned with the project's stated Paper 1.21.11 target. Running against another server or API version may introduce missing registry entries or behavioral differences.</p>
+<p>For Paper's supported Java requirements, consult the <a href="https://docs.papermc.io/paper/getting-started/">official Paper getting-started documentation</a>.</p>
+
+<h2>Event coverage is intentionally limited</h2>
+<p>The current event enum wraps only PlayerJoin, PlayerQuit, Paper AsyncChat, BlockBreak, BlockPlace, PlayerInteract, and EntityDamage. Inventory events, world events, commands, entity lifecycle events, and other Bukkit/Paper events are not exposed by the current typed event layer.</p>
+
+<h2>GraalPy is not identical to CPython</h2>
+<p>PySoup executes Python through GraalPy. GraalPy is a Python 3 implementation on GraalVM, not a conventional CPython installation. Package compatibility and implementation details can differ. See the <a href="https://www.graalvm.org/reference-manual/graalpy/">GraalPy documentation</a> when using functionality outside the Python standard library.</p>
+
+<h2>Threading</h2>
+<p>The scheduler can run callbacks asynchronously, and Paper's chat event is asynchronous. Asynchronous code must not blindly call server APIs that require the main thread. Keep synchronous callbacks short to avoid affecting server ticks.</p>
+
+<h2>Entity lifetime</h2>
+<p>Entity wrappers are UUID-backed. An entity can become invalid after removal, death, unloading, or another lifecycle transition. Check <code>is_valid()</code> before long-lived references are used.</p>
+
+<h2>World availability</h2>
+<p><code>WorldInstance</code> resolves a world by name. If the world is not loaded, operations that require it raise <code>ValueError</code>.</p>
+<pre><code class="language-python">world = WorldInstance("my_world")
+try:
+    world.get_block(BlockPosition(0, 80, 0))
+except ValueError:
+    print("The world is not loaded.")</code></pre>
+
+<h2>Inventory synchronization</h2>
+<p>Attached inventories mirror Bukkit state into Python when constructed or refreshed. Python-side changes are pushed when <code>set_slot()</code> or related mutation methods write to the attached inventory. If another system changes the Bukkit inventory directly, call <code>refresh()</code> before relying on the Python-side snapshot.</p>
+
+<h2>Item metadata scope</h2>
+<p><code>ItemMeta</code> currently models enchantments only. Display names, lore, custom model data, components, and other modern item metadata are not implemented in the Python wrapper shown in the supplied source.</p>
+
+<h2>Material tables</h2>
+<p><code>BlockMaterial</code> and <code>ItemMaterial</code> are generated-style enums containing a large set of Bukkit material names. The source currently contains 1,166 block-material entries and 1,658 item-material entries. The authoritative list is the installed library itself; this documentation intentionally does not duplicate thousands of enum members.</p>
+
+<h2>Scheduler limitation</h2>
+<p>The current scheduler rejects the combination of <code>@run_later()</code> and <code>@async_task()</code>. Use <code>@repeating()</code> with asynchronous execution when the initial delay can be represented by its delay parameter.</p>
+
+        <nav class="page-footer" aria-label="Page navigation"><a class="page-footer-link" href="errors.html"><span class="page-footer-dir">← Previous</span><span class="page-footer-title">Reading errors</span></a><span></span></nav>
+      </article>
+    </main>
+  </div>
+  <script src="nav-data.js"></script>
+  <script src="nav.js"></script>
+  <script src="tree.js"></script>
+  <script src="docs.js"></script>
+</body>
+</html>

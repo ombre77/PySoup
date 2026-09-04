@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scheduler — PySoup Docs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="scheduler">
+  <div class="shell">
+    <aside class="sidebar" aria-label="Documentation navigation">
+      <div id="sidebar-root"></div>
+    </aside>
+    <main class="content">
+      <article class="content-inner">
+        <h1>Scheduler</h1><div class="page-title-rule"></div><p class="lede">Schedule Python functions through PySoup's server bridge using immediate, delayed, repeating, and asynchronous execution.</p>
+<h2>Task functions</h2>
+<p>A function becomes a PySoup scheduled task with <code>@task()</code>. The function must accept exactly one argument: a <code>Task</code> object.</p>
+<pre><code class="language-python">from pysoup import *
+
+@task()
+def run_now(task: Task):
+    broadcast("This task was scheduled immediately.")</code></pre>
+<p>With no timing decorator, <code>@task()</code> schedules the function immediately through the bridge. The task may still be asynchronous when <code>@async_task()</code> is also applied.</p>
+
+<h2>Run once after a delay</h2>
+<p><code>@run_later(delay_ticks)</code> schedules one execution after the given number of server ticks. Minecraft runs 20 ticks per second under normal conditions, so 20 ticks is approximately one second.</p>
+<pre><code class="language-python">@task()
+@run_later(100)
+def delayed(task: Task):
+    broadcast("About five seconds later.")</code></pre>
+
+<h2>Repeat</h2>
+<p><code>@repeating(delay_ticks, period_ticks)</code> waits for the initial delay, then runs repeatedly at the specified period.</p>
+<pre><code class="language-python">@task()
+@repeating(20, 100)
+def periodic(task: Task):
+    broadcast("Periodic task")</code></pre>
+
+<h2>Asynchronous execution</h2>
+<p><code>@async_task()</code> asks the bridge to execute the task asynchronously. This is useful for work that should not block the server's main thread.</p>
+<pre><code class="language-python">@task()
+@async_task()
+def background(task: Task):
+    # Perform work that is safe to run away from the main thread.
+    print("Background work")</code></pre>
+
+<h2>Combining decorators</h2>
+<p>Asynchronous execution can be combined with <code>@repeating()</code>:</p>
+<pre><code class="language-python">@task()
+@async_task()
+@repeating(0, 20)
+def async_periodic(task: Task):
+    print("Runs asynchronously about once per second.")</code></pre>
+<div class="callout warn"><strong>Delayed async tasks are not supported.</strong> The current implementation explicitly rejects <code>@run_later()</code> combined with <code>@async_task()</code>. Use a repeating schedule with an appropriate initial delay if that behavior is required.</div>
+
+<h2>Task cancellation</h2>
+<p>The callback receives a <code>Task</code> instance. Its <code>id</code> is assigned by the server bridge, and <code>cancel()</code> cancels the registered server task.</p>
+<pre><code class="language-python">@task()
+@repeating(0, 20)
+def countdown(task: Task):
+    print(f"Task id: {task.id}")
+    task.cancel()</code></pre>
+<p>Calling <code>cancel()</code> before the task has been assigned an ID raises <code>RuntimeError</code>. In normal scheduled execution, the ID is assigned before the callback runs.</p>
+
+<h2>Threading guidance</h2>
+<p>Asynchronous tasks run away from the main server thread. Do not assume that arbitrary Bukkit/Paper operations are safe from an asynchronous callback. If an operation must occur on the main thread, structure the script so that the server-thread operation is scheduled appropriately by the available PySoup bridge/API.</p>
+
+<h2>Decorator order</h2>
+<p>Keep the documented form:</p>
+<pre><code class="language-python">@task()
+@run_later(20)
+def work(task: Task):
+    ...</code></pre>
+<p>The scheduling markers are read when <code>@task()</code> decorates the function. The same applies to <code>@async_task()</code> and <code>@repeating()</code>.</p>
+
+        <nav class="page-footer" aria-label="Page navigation"><a class="page-footer-link" href="items.html"><span class="page-footer-dir">← Previous</span><span class="page-footer-title">Items & Inventory</span></a><a class="page-footer-link next" href="errors.html"><span class="page-footer-dir">Next →</span><span class="page-footer-title">Reading errors</span></a></nav>
+      </article>
+    </main>
+  </div>
+  <script src="nav-data.js"></script>
+  <script src="nav.js"></script>
+  <script src="tree.js"></script>
+  <script src="docs.js"></script>
+</body>
+</html>

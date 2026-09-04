@@ -15,10 +15,10 @@ const PYSOUP_NAV = [
     ],
   },
   {
-    label: "Scripting",
+    label: "Getting started",
     links: [
+      { page: "first_script", title: "First Script", href: "first_script.html" },
       { page: "events", title: "Events", href: "events.html" },
-      { page: "async-events", title: "Async events", href: "async-events.html" },
       { page: "items", title: "Items & inventory", href: "items.html" },
       { page: "scheduler", title: "Scheduler", href: "scheduler.html" },
     ],

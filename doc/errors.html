@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reading Errors — PySoup Docs</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="errors">
+  <div class="shell">
+    <aside class="sidebar" aria-label="Documentation navigation">
+      <div id="sidebar-root"></div>
+    </aside>
+    <main class="content">
+      <article class="content-inner">
+        <h1>Reading errors</h1><div class="page-title-rule"></div><p class="lede">PySoup errors fall into Python execution errors, Java/Paper bridge errors, and internal engine failures.</p>
+<h2>Error categories</h2>
+<table>
+<thead><tr><th>Category</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Python error</td><td>Your script raised a Python syntax or runtime exception.</td></tr>
+<tr><td>Java error in bridge call</td><td>A call crossed into Bukkit/Paper and the Java side rejected it or failed.</td></tr>
+<tr><td>Internal engine error</td><td>A failure occurred in the GraalVM/Polyglot execution layer.</td></tr>
+</tbody>
+</table>
+
+<h2>Python errors</h2>
+<pre><code>[welcome.py] Python error:
+Traceback (most recent call last):
+  File "welcome.py", line 5, in &lt;module&gt;
+    broadcast("Hello"
+SyntaxError: unexpected EOF while parsing</code></pre>
+<p>Start with the first traceback location that points into your own script. Typical causes include syntax errors, missing imports, wrong attribute names, and invalid values.</p>
+
+<h2>Java bridge errors</h2>
+<pre><code>[script.py] Java error in bridge call:
+NullPointerException: ...</code></pre>
+<p>These errors mean that Python successfully reached the Java/Bukkit side but an underlying operation failed. Check the method arguments, object lifetime, and whether the relevant server object is still valid.</p>
+
+<h2>Invalid entities</h2>
+<p><code>EntityInstance</code> stores a UUID rather than a permanent live Java reference. Methods that need the entity resolve it again. If the entity has been removed or is otherwise invalid, PySoup raises <code>ValueError</code> instead of silently operating on a stale object.</p>
+
+<pre><code class="language-python">if entity.is_valid():
+    entity.teleport(Position(0, 80, 0))</code></pre>
+
+<h2>Common mistakes</h2>
+<ul>
+<li><strong>Using an unsupported event:</strong> only the events listed on the <a href="events.html">Events</a> page are wrapped by the current library.</li>
+<li><strong>Calling a nonexistent convenience method:</strong> check the current API reference rather than older examples.</li>
+<li><strong>Using asynchronous code for main-thread-only work:</strong> Bukkit/Paper APIs have thread-safety constraints.</li>
+<li><strong>Assuming every item stacks to 64:</strong> use <code>get_max_stack_size()</code>.</li>
+<li><strong>Forgetting to push a modified player inventory:</strong> after changing a <code>PlayerInventory</code> wrapper, call <code>player.push_inventory()</code>.</li>
+<li><strong>Using a removed world/entity:</strong> <code>WorldInstance._bukkit_world()</code> and entity resolution validate availability.</li>
+</ul>
+
+<h2>Debugging checklist</h2>
+<ol>
+<li>Identify the script name and error category.</li>
+<li>Read the Python traceback from the first useful application frame.</li>
+<li>Compare the failing call with the API documented in this site.</li>
+<li>If the error crosses into Java, verify that the Bukkit/Paper object exists and is valid.</li>
+<li>For scheduling issues, simplify the task to a synchronous minimal callback and add timing/asynchronous behavior back one piece at a time.</li>
+</ol>
+
+        <nav class="page-footer" aria-label="Page navigation"><a class="page-footer-link" href="scheduler.html"><span class="page-footer-dir">← Previous</span><span class="page-footer-title">Scheduler</span></a><a class="page-footer-link next" href="limitations.html"><span class="page-footer-dir">Next →</span><span class="page-footer-title">Known limitations</span></a></nav>
+      </article>
+    </main>
+  </div>
+  <script src="nav-data.js"></script>
+  <script src="nav.js"></script>
+  <script src="tree.js"></script>
+  <script src="docs.js"></script>
+</body>
+</html>
