@@ -12,6 +12,9 @@ from .items.item_stack import ItemStack
 from .items.item_meta import ItemMeta
 from .items.enchantments import Enchantment
 from .schedule.scheduler import task,async_task,run_later,repeating,Task
+from .text.text_style import Style
+from .text.text_color import Color,NamedColor
+from .text.component import Component,TextComponent,text
 
 _bridge = polyglot.import_value("bridge")
 _events._setBridge(_bridge)

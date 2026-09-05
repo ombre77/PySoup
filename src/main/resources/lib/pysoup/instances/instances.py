@@ -4,6 +4,7 @@ from ..maths.geometry import BlockPosition, Position, Direction
 from ..utils import get_server
 from ..items.materials import BlockMaterial,EntityMaterial
 from ..inventory.player_inventory import PlayerInventory
+from ..text.component import TextComponent
 
 import java
 
@@ -107,7 +108,7 @@ class PlayerInstance(EntityInstance):
     def get_name(self) -> str:
         return self._live().getName()
 
-    def send_message(self, message: str) -> None:
+    def send_message(self, message: TextComponent) -> None:
         self._live().sendMessage(message)
 
     @classmethod

@@ -4,6 +4,7 @@ from typing import Any, Optional,Callable
 from dataclasses import dataclass,field
 from .instances.instances import PlayerInstance,BlockInstance,EntityInstance
 from .utils import component_to_str
+from .text.component import TextComponent
 
 _bridge: Optional[Any] = None
 
@@ -31,7 +32,7 @@ def on_event(event: Event):
     event_class = event.value
     extractor = _EVENT_EXTRACTORS.get(event)
 
-    def decorator(fn):
+    def decorator(fn:Callable):
         if extractor is not None:
             confirmed_extractor = extractor
 
@@ -104,7 +105,7 @@ class EventInfos:
     @dataclass
     class PlayerChat(CancellableEvent):
         player:PlayerInstance
-        message:str
+        message:TextComponent
 
     @dataclass
     class BlockBreak(CancellableEvent):
@@ -156,7 +157,7 @@ _EVENT_EXTRACTORS: dict[Event, Callable[[Any], Any]] = {
     Event.PlayerChat: lambda e: EventInfos.PlayerChat(
         _raw_event=e,
         player=PlayerInstance.from_bukkit(e.getPlayer()),
-        message=component_to_str(e.message())
+        message=TextComponent.from_adventure(e.message())
     ),
     Event.BlockBreak: lambda e: EventInfos.BlockBreak(
         _raw_event=e,
