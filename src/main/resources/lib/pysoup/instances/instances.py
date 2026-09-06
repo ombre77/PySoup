@@ -30,7 +30,7 @@ class WorldInstance:
 
     def summon(self,position:Position,entity:EntityMaterial):
         bukkit_world=self._bukkit_world()
-        bukkit_entity_type=java.type("org.bukkit.entity.EntityType").fromName(entity.name)
+        bukkit_entity_type=java.type("org.bukkit.entity.EntityType").fromName(entity.value)
         entity=bukkit_world.spawnEntity(position.to_bukkit(self._bukkit_world()),bukkit_entity_type)
         return EntityInstance.from_bukkit(entity)
 
@@ -109,7 +109,7 @@ class PlayerInstance(EntityInstance):
         return self._live().getName()
 
     def send_message(self, message: TextComponent) -> None:
-        self._live().sendMessage(message)
+        self._live().sendMessage(message.to_adventure())
 
     @classmethod
     def from_bukkit(cls, entity):

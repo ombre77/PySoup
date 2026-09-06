@@ -13,5 +13,6 @@ import org.bukkit.inventory.Inventory;
 public class ExampleListener implements Listener {
     @EventHandler
     public void onEvent(PlayerInteractEvent event){
+        EntityType a =EntityType.ACACIA_BOAT;
     }
 }

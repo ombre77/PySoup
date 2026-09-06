@@ -1,10 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass, field, replace
-from typing import ClassVar, Optional
+from typing import ClassVar, Optional, TYPE_CHECKING
 
 from ..maths.logic import Trilean
 from .text_color import Color
 from .text_style import Style, TextDecoration
+from .text_font import FontKey
+from .text_hover import HoverEvent
+from uuid import UUID
 
 from ..bukkit import (
     AdventureComponent,
@@ -15,6 +18,9 @@ from ..bukkit import (
     TextComponentImpl,
     PlainTextSerializer
     )
+
+if TYPE_CHECKING:
+    from ..items.materials import ItemMaterial,EntityMaterial
 
 @dataclass(frozen=True)
 class Component:
@@ -45,11 +51,24 @@ class Component:
     def obfuscated(self, value: bool | Trilean = True) -> "Component":
         return self.decorate(TextDecoration.OBFUSCATED, value)
 
-    def font(self, font: Optional[str]) -> "Component":
+    def font(self, font: Optional[FontKey]) -> "Component":
         return replace(self, style=self.style.with_font(font))
 
     def with_style(self, style: Style) -> "Component":
         return replace(self, style=style)
+
+    def hover_event(self, hover_event:HoverEvent)->"Component":
+        return replace(self, style=self.style.with_hover_event(hover_event))
+
+    def on_hover_show_text(self, component: "Component") -> "Component":
+        return self.hover_event(HoverEvent.show_text(component))
+
+    def on_hover_show_item(self, item: "ItemMaterial") -> "Component":
+        return self.hover_event(HoverEvent.show_item(item))
+
+    def on_hover_show_entity(self, entity: "EntityMaterial",uuid:UUID) -> "Component":
+        return self.hover_event(HoverEvent.show_entity(entity,uuid))
+
 
     # Tree
     def append(self, *children: "Component") -> "Component":
@@ -99,15 +118,22 @@ class TextComponent(Component):
             java_component=java_component.decoration(adventure_deco,state._to_adventure_state())
 
         if effective.font is not None:
-            java_component=java_component.font(AdventureKey.key(effective.font))
+            java_component=java_component.font(AdventureKey.key(effective.font.as_string()))
 
         if effective.insertion is not None:
             java_component=java_component.insertion(effective.insertion)
+
+        if effective.hover_event is not None:
+            java_component = java_component.hoverEvent(effective.hover_event.to_adventure())
 
         for child in self._resolved_children(effective):
             java_component = java_component.append(child.to_adventure(effective))
 
         return java_component
+
+
+    def append(self, *children: "TextComponent") -> "TextComponent":
+        return replace(self, children=self.children + children)
 
     @classmethod
     def from_adventure(cls,java_component)->TextComponent:

@@ -102,8 +102,42 @@ body {
 .brand-tag {
   font-size: 12.5px;
   color: var(--text-faint);
-  margin: 0 0 28px;
+  margin: 0 0 14px;
   font-family: var(--font-mono);
+}
+
+.brand-links {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 26px;
+}
+
+.icon-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-body);
+  text-decoration: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.icon-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  border-color: var(--flag-4);
 }
 
 .nav-group {

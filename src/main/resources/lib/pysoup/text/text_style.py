@@ -1,12 +1,15 @@
 from __future__ import annotations
 from dataclasses import dataclass,field,replace
 from enum import Enum
-from typing import Optional,Mapping,ClassVar
+from typing import Optional,Mapping,ClassVar,overload
 from ..maths.logic import Trilean
-from .text_color import Color
+from .text_color import Color,NamedColor
 from ..bukkit import (
     TextComponentImpl,
+    AdventureTextDecoration
 )
+from .text_font import FontKey,VanillaFont
+from .text_hover import HoverEvent
 
 class TextDecoration(Enum):
     BOLD = "bold"
@@ -21,8 +24,9 @@ _EMPTY_DECORATIONS:Mapping[TextDecoration,Trilean]={}
 class Style:
     color:Optional["Color"]=None
     decorations:Mapping[TextDecoration,Trilean]=field(default_factory=lambda:_EMPTY_DECORATIONS)
-    font: Optional[str] = None
+    font: Optional[FontKey] = None
     insertion: Optional[str] = None
+    hover_event:Optional[HoverEvent] = None
 
     def with_color(self, color: Optional["Color"]) -> "Style":
         return replace(self, color=color)
@@ -31,14 +35,16 @@ class Style:
         state = value if isinstance(value, Trilean) else Trilean.of(value)
         return replace(self, decorations={**self.decorations, decoration: state})
 
-    def with_font(self, font: Optional[str]) -> "Style":
+    def with_font(self, font: Optional[FontKey]) -> "Style":
         return replace(self, font=font)
 
     def decoration(self, decoration: TextDecoration) -> Trilean:
         return self.decorations.get(decoration, Trilean.UNSET)
 
+    def with_hover_event(self, hover_event: Optional[HoverEvent]) -> "Style":
+        return replace(self, hover_event=hover_event)
+
     def merge(self, other: "Style") -> "Style":
-        """other wins where it's explicitly set; NOT_SET/None falls through to self."""
         merged_decorations = dict(self.decorations)
         for deco, state in other.decorations.items():
             if state is not Trilean.UNSET:
@@ -48,7 +54,21 @@ class Style:
             decorations=merged_decorations,
             font=other.font if other.font is not None else self.font,
             insertion=other.insertion if other.insertion is not None else self.insertion,
+            hover_event=other.hover_event if other.hover_event is not None else self.hover_event,
         )
+
+    def __add__(self, other:"Style|Color|TextDecoration|FontKey")->"Style":
+        match other:
+            case Style():
+                return self.merge(other)
+            case Color():
+                return self.with_color(other)
+            case FontKey():
+                return self.with_font(other)
+            case TextDecoration():
+                return self.decorate(other,True)
+            case _:
+                return NotImplemented(f"type of {type(other)} + {type(self)} is not implemented")
 
     @classmethod
     def from_adventure(cls,java_style)->Style:
@@ -57,7 +77,7 @@ class Style:
 
         decorations = {}
         for deco in TextDecoration:
-            adventure_deco = getattr(TextComponentImpl, deco.value.upper())
+            adventure_deco = getattr(AdventureTextDecoration, deco.value.upper())
             decorations[deco] = Trilean._from_adventure(java_style.decoration(adventure_deco))
 
         java_font = java_style.font()

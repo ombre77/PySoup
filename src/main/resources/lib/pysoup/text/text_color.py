@@ -79,6 +79,9 @@ class NamedColor(Color,Enum):
     def __init__(self, *args):
         pass  # attrs already set in __new__ — Color's dataclass __init__ would choke on 4 args
 
+    def __repr__(self) -> str:
+        return f"NamedColor.{self.name}"
+
     BLACK        = (0, 0, 0, "0")
     DARK_BLUE    = (0, 0, 170, "1")
     DARK_GREEN   = (0, 170, 0, "2")
