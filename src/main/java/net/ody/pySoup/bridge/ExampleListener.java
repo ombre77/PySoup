@@ -2,6 +2,7 @@ package net.ody.pySoup.bridge;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import org.bukkit.Material;
+import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
@@ -14,5 +15,6 @@ public class ExampleListener implements Listener {
     @EventHandler
     public void onEvent(PlayerInteractEvent event){
         EntityType a =EntityType.ACACIA_BOAT;
+        DamageType tp=DamageType.ARROW;
     }
 }

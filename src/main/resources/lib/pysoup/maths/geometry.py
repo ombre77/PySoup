@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import overload
+from typing import overload,Self
 import math
 import java
 
@@ -9,28 +9,28 @@ class Vector3:
     y:float
     z:float
 
-    def __add__(self, other: "Vector3") -> "Vector3":
-        return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
+    def __add__(self, other: Self) -> Self:
+        return type(self)(self.x + other.x, self.y + other.y, self.z + other.z)
 
-    def __sub__(self, other: "Vector3") -> "Vector3":
-        return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
+    def __sub__(self, other: Self) -> Self:
+        return type(self)(self.x - other.x, self.y - other.y, self.z - other.z)
 
-    def __mul__(self, scalar: float) -> "Vector3":
-        return Vector3(self.x * scalar, self.y * scalar, self.z * scalar)
+    def __mul__(self, scalar: float) -> Self:
+        return type(self)(self.x * scalar, self.y * scalar, self.z * scalar)
 
     __rmul__ = __mul__
 
-    def __truediv__(self, scalar: float) -> "Vector3":
-        return Vector3(self.x / scalar, self.y / scalar, self.z / scalar)
+    def __truediv__(self, scalar: float) -> Self:
+        return type(self)(self.x / scalar, self.y / scalar, self.z / scalar)
 
-    def __neg__(self) -> "Vector3":
-        return Vector3(-self.x, -self.y, -self.z)
+    def __neg__(self) -> Self:
+        return type(self)(-self.x, -self.y, -self.z)
 
     def dot(self, other: "Vector3") -> float:
         return self.x * other.x + self.y * other.y + self.z * other.z
 
-    def cross(self, other: "Vector3") -> "Vector3":
-        return Vector3(
+    def cross(self, other: "Vector3") -> Self:
+        return type(self)(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
             self.x * other.y - self.y * other.x,
@@ -44,7 +44,7 @@ class Vector3:
         skips the sqrt."""
         return self.dot(self)
 
-    def normalized(self) -> "Vector3":
+    def normalized(self) -> Self:
         length = self.length()
         if length == 0:
             raise ValueError("Cannot normalize a zero-length vector")
@@ -57,7 +57,7 @@ class Vector3:
         return (self.x, self.y, self.z)
 
     @classmethod
-    def zero(cls) -> "Vector3":
+    def zero(cls) -> Self:
         return cls(0.0, 0.0, 0.0)
 
 
@@ -103,8 +103,6 @@ class Position:
     def __sub__(self, other: Vector3) -> "Position": ...
 
     def __sub__(self, other):
-        """Position - Position = Vector3 (the displacement between them).
-        Position - Vector3 = Position (moved backwards by the displacement)."""
         if isinstance(other, Position):
             return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
         return Position(self.x - other.x, self.y - other.y, self.z - other.z)
@@ -139,8 +137,6 @@ class Direction:
         return Direction(self.yaw - other.yaw, self.pitch - other.pitch)
 
     def to_vector(self) -> Vector3:
-        """Unit vector this yaw/pitch points towards - matches Bukkit's
-        Location.getDirection()."""
         yaw_rad = math.radians(self.yaw)
         pitch_rad = math.radians(self.pitch)
         xz = math.cos(pitch_rad)
@@ -152,9 +148,6 @@ class Direction:
 
     @classmethod
     def from_vector(cls, vector: Vector3) -> "Direction":
-        """Inverse of to_vector() - matches Bukkit's Location.setDirection().
-
-        Yaw is undefined for a purely vertical vector, so defaults to 0.0."""
         if vector.x == 0 and vector.z == 0:
             return cls(0.0, -90.0 if vector.y > 0 else 90.0)
 
@@ -166,3 +159,25 @@ class Direction:
         pitch = math.degrees(math.atan(-vector.y / xz))
 
         return cls(yaw, pitch)
+
+@dataclass
+class Velocity(Vector3):
+
+    def clamped(self, max_speed: float) -> "Velocity":
+        length_sq = self.length_squared()
+        if length_sq <= max_speed * max_speed or length_sq == 0:
+            return Velocity(self.x, self.y, self.z)
+        scale = max_speed / math.sqrt(length_sq)
+        return Velocity(self.x * scale, self.y * scale, self.z * scale)
+
+    @classmethod
+    def from_vector(cls, vector: Vector3) -> "Velocity":
+        return cls(vector.x, vector.y, vector.z)
+
+    @classmethod
+    def from_bukkit(cls, vector) -> "Velocity":
+        return cls(vector.getX(), vector.getY(), vector.getZ())
+
+    def to_bukkit(self):
+        BukkitVector = java.type("org.bukkit.util.Vector")
+        return BukkitVector(self.x, self.y, self.z)

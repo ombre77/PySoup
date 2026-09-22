@@ -22,3 +22,5 @@ AdventureClickAction: Any = java.type("net.kyori.adventure.text.event.ClickEvent
 AdventureHoverEvent: Any = java.type("net.kyori.adventure.text.event.HoverEvent")
 JavaUUID: Any = java.type("java.util.UUID")
 EntityType:Any=java.type("org.bukkit.entity.EntityType")
+DamageCauseEnum:Any = java.type("org.bukkit.event.entity.EntityDamageEvent$DamageCause")
+Registry:Any = java.type("org.bukkit.Registry")

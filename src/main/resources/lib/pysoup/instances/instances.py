@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
-from ..maths.geometry import BlockPosition, Position, Direction
+from ..maths.geometry import BlockPosition, Position, Direction, Velocity
 from ..utils import get_server
 from ..items.materials import BlockMaterial,EntityMaterial
 from ..inventory.player_inventory import PlayerInventory
@@ -18,7 +18,6 @@ class WorldInstance:
     world:str
 
     def set_block(self, position: BlockPosition, material: BlockMaterial) -> None:
-        """material is a Bukkit Material name, e.g. 'STONE', 'OAK_PLANKS'."""
         bukkit_world = self._bukkit_world()
         block = bukkit_world.getBlockAt(position.x, position.y, position.z)
         block.setType(_Material.valueOf(material.name.upper()))
@@ -54,7 +53,6 @@ class EntityInstance:
 
     @classmethod
     def from_bukkit(cls, entity):
-        """Wraps a raw Bukkit Entity (e.g. from event.getEntity()) as an EntityInstance."""
         return cls(str(entity.getUniqueId()))
 
     def _live(self):
@@ -84,7 +82,6 @@ class EntityInstance:
         direction: Optional[Direction] = None,
         world: Optional[WorldInstance] = None,
     ) -> None:
-        """Teleports the entity. Stays in its current world unless `world` is given."""
         entity = self._live()
         bukkit_world = world._bukkit_world() if world is not None else entity.getWorld()
         yaw = direction.yaw if direction is not None else 0.0
@@ -93,6 +90,12 @@ class EntityInstance:
 
     def remove(self) -> None:
         self._live().remove()
+
+    def get_velocity(self) -> Velocity:
+        return Velocity.from_bukkit(self._live().getVelocity())
+
+    def set_velocity(self, velocity: Velocity) -> None:
+        self._live().setVelocity(velocity.to_bukkit())
 
 @dataclass(frozen=True)
 class PlayerInstance(EntityInstance):
